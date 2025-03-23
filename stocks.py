@@ -2,8 +2,8 @@ import requests
 import pygal
 import lxml
 import os
-import datetime
-import web-browser 
+import webbrowser 
+from datetime import datetime
 
 API_KEY = "L0WWWUGT9503R130"
 BASE_URL = "https://www.alphavantage.co/query"
@@ -178,8 +178,37 @@ def fetch_data(user_input):
         print(" Failed.")
         print(f"Error fetching data: {e}")
         return None
+   
+#parse data
+#run the functions to get the data back so we can parse it for functions
+inputs = user_input()
+stock_data = fetch_data(inputs)
+#function to retrieve the open, high, low, and close
+def get_stock_data(data):
+    # Get the keys since we won't know what the time series will be called in the dictionary
+    keys = list(data.keys())
+    #grab the time series key since we
+    time_series_data = keys[1]
     
-#get chart type user wants displayed
+    #declare variables to hold separated data points
+    open_prices = []
+    high_prices = []
+    low_prices = []
+    close_prices = []
+    
+    #access the time series data using the time_series_data key
+    time_series = data.get(time_series_data)
+    
+    #iterate through the time series data and add stock data points to their lists
+    for timestamp, values in time_series.items():
+        open_prices.append(values.get('1. open'))
+        high_prices.append(values.get('2. high'))
+        low_prices.append(values.get('3. low'))
+        close_prices.append(values.get('4. close'))
+    
+    return open_prices, high_prices, low_prices, close_prices
+
+open_prices, high_prices, low_prices, close_prices = get_stock_data(stock_data)
 
 #get time series choice from user
 
