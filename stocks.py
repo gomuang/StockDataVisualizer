@@ -199,17 +199,44 @@ def get_stock_data(data):
     #access the time series data using the time_series_data key
     time_series = data.get(time_series_data)
     
-    #iterate through the time series data and add stock data points to their lists
+    #iterate through the time series data and add stock data points associated with that time stamp to their lists
     for timestamp, values in time_series.items():
-        open_prices.append(values.get('1. open'))
-        high_prices.append(values.get('2. high'))
-        low_prices.append(values.get('3. low'))
-        close_prices.append(values.get('4. close'))
-    
+        open_price = values.get('1. open')
+        open_prices.append(int(float(open_price)))
+        high_price = values.get('2. high')
+        high_prices.append(int(float(high_price)))
+        low_price = values.get('3. low')
+        low_prices.append(int(float(low_price)))
+        close_price = values.get('4. close')
+        close_prices.append(int(float(close_price)))
     return open_prices, high_prices, low_prices, close_prices
 
 open_prices, high_prices, low_prices, close_prices = get_stock_data(stock_data)
 
+def get_chart_type(chart_type):
+    if chart_type == 1:
+        bar_chart = pygal.Bar()
+        #THIS NEEDS TO BE UPDATED TO ACCOMODATE THE RETURN FROM TIME SERIES AND DATE RANGE
+        bar_chart.title = 'TEST'
+        bar_chart.x_labels = map(str, range(2002, 2013))
+        bar_chart.add('Open', open_prices)
+        bar_chart.add('High', high_prices)
+        bar_chart.add('Low', low_prices)
+        bar_chart.add('Close', close_prices)
+        return bar_chart
+    else:
+        line_chart = pygal.Line()
+        #THIS NEEDS TO BE UPDATED TO ACCOMODATE THE RETURN FROM TIME SERIES AND DATE RANGE
+        bar_chart.title = 'TEST'
+        bar_chart.x_labels = map(str, range(2002, 2013))
+        line_chart.add('Open', open_prices)
+        line_chart.add('High', high_prices)
+        line_chart.add('Low', low_prices)
+        line_chart.add('Close', close_prices)
+        return line_chart
+
+chart = get_chart_type(inputs['chart_type'])
+chart.render_to_file('chart.svg')
 #get time series choice from user
 
 #get start and end date for chart render
