@@ -1,0 +1,77 @@
+import requests
+import json
+from datetime import datetime
+
+# Replace with your Alpha Vantage API key
+API_KEY = "YOUR_API_KEY"
+
+def get_time_series_data():
+    # Prompt user for input
+    stock_symbol = input("Enter the stock symbol (e.g., AAPL, MSFT): ").upper()
+    
+    print("\nChoose a time series function:")
+    print("1: Intraday (TIME_SERIES_INTRADAY)")
+    print("2: Daily (TIME_SERIES_DAILY)")
+    print("3: Weekly (TIME_SERIES_WEEKLY)")
+    print("4: Monthly (TIME_SERIES_MONTHLY)")
+    
+    function_map = {
+        "1": "TIME_SERIES_INTRADAY",
+        "2": "TIME_SERIES_DAILY",
+        "3": "TIME_SERIES_WEEKLY",
+        "4": "TIME_SERIES_MONTHLY"
+    }
+    
+    choice = input("Enter the number corresponding to the function: ")
+    time_series_function = function_map.get(choice, "TIME_SERIES_DAILY")
+
+    # Get date range
+    start_date = input("Enter the start date (YYYY-MM-DD): ")
+    end_date = input("Enter the end date (YYYY-MM-DD): ")
+
+    # Validate date format
+    try:
+        start_date = datetime.strptime(start_date, "%Y-%m-%d").date()
+        end_date = datetime.strptime(end_date, "%Y-%m-%d").date()
+        
+        if end_date < start_date:
+            print("Error: End date cannot be before the start date.")
+            return
+    except ValueError:
+        print("Error: Invalid date format.")
+        return
+
+    # API endpoint
+    url = f"https://www.alphavantage.co/query?function={time_series_function}&symbol={stock_symbol}&apikey={API_KEY}&datatype=json"
+
+    # Make the API request
+    response = requests.get(url)
+    data = response.json()
+
+    # Extract relevant time series key
+    time_series_key = {
+        "TIME_SERIES_INTRADAY": "Time Series (5min)",  
+        "TIME_SERIES_DAILY": "Time Series (Daily)",
+        "TIME_SERIES_WEEKLY": "Weekly Time Series",
+        "TIME_SERIES_MONTHLY": "Monthly Time Series"
+    }.get(time_series_function)
+
+    if time_series_key not in data:
+        print("Error: Failed to retrieve data. Check API key or stock symbol.")
+        return
+
+    # Filter data within the specified date range
+    filtered_data = {date: values for date, values in data[time_series_key].items() if start_date <= datetime.strptime(date, "%Y-%m-%d").date() <= end_date}
+
+    if not filtered_data:
+        print("No data available in the specified date range.")
+        return
+    
+    # Return filtered data
+    return filtered_data
+
+# Example Usage
+if __name__ == "__main__":
+    stock_data = get_time_series_data()
+    if stock_data:
+        print(json.dumps(stock_data, indent=2))
