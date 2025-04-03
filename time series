@@ -3,7 +3,7 @@ import json
 from datetime import datetime
 
 # Replace with your Alpha Vantage API key
-API_KEY = "YOUR_API_KEY"
+API_KEY = "L0WWWUGT9503R130"
 
 def get_time_series_data():
     # Prompt user for input
