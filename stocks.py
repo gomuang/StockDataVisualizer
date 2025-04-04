@@ -155,6 +155,7 @@ def fetch_data(user_input):
         "function": user_input["time_series_function"],  # Which time series to retrieve (daily, weekly, etc.)
         "symbol": user_input["symbol"],                  # The stock ticker symbol
         "apikey": API_KEY,                               # Authentication key for API access
+        "month": "{}-{:02}".format(user_input["start_date"].year, user_input["start_date"].month) # Month to pull data from
     }
     
     # For intraday data (option 1), we need to also specify how frequently we want data points
@@ -227,8 +228,8 @@ def get_chart_type(chart_type):
     else:
         line_chart = pygal.Line()
         #THIS NEEDS TO BE UPDATED TO ACCOMODATE THE RETURN FROM TIME SERIES AND DATE RANGE
-        bar_chart.title = 'TEST'
-        bar_chart.x_labels = map(str, range(2002, 2013))
+        line_chart.title = 'TEST'
+        line_chart.x_labels = map(str, range(2002, 2013))
         line_chart.add('Open', open_prices)
         line_chart.add('High', high_prices)
         line_chart.add('Low', low_prices)
