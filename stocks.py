@@ -155,11 +155,13 @@ def fetch_data(user_input):
         "function": user_input["time_series_function"],  # Which time series to retrieve (daily, weekly, etc.)
         "symbol": user_input["symbol"],                  # The stock ticker symbol
         "apikey": API_KEY,                               # Authentication key for API access
-        "month": "{}-{:02}".format(user_input["start_date"].year, user_input["start_date"].month) # Month to pull data from
+        "month": "{}-{:02}".format(user_input["start_date"].year, user_input["start_date"].month), # Month to pull data from
+        "outputsize": "full"                             # Request entire data so it does not cut off
     }
     
     # For intraday data (option 1), we need to also specify how frequently we want data points
     # This adds a parameter requesting data at 60-minute intervals
+    # Also need to specify that we want the entire month of data to be pulled
     if user_input["time_series_option"] == 1:
         params["interval"] = "60min"
     
@@ -199,9 +201,23 @@ def get_stock_data(data):
     
     #access the time series data using the time_series_data key
     time_series = data.get(time_series_data)
+
+    # only use data that falls between the start and end dates
+    # filter for intraday (uses timestamp with time)
+    if inputs["time_series_option"] == 1:
+        filtered_time_series = {
+            timestamp: values for timestamp, values in time_series.items()
+            if inputs["start_date"] < datetime.strptime(timestamp, "%Y-%m-%d %H:%M:%S") < inputs["end_date"]
+        }
+    # filter for all others (uses timestamp with just date)
+    else:
+        filtered_time_series = {
+            timestamp: values for timestamp, values in time_series.items()
+            if inputs["start_date"] < datetime.strptime(timestamp, "%Y-%m-%d") < inputs["end_date"]
+        }
     
     #iterate through the time series data and add stock data points associated with that time stamp to their lists
-    for timestamp, values in time_series.items():
+    for timestamp, values in filtered_time_series.items():
         open_price = values.get('1. open')
         open_prices.append(int(float(open_price)))
         high_price = values.get('2. high')
@@ -210,17 +226,26 @@ def get_stock_data(data):
         low_prices.append(int(float(low_price)))
         close_price = values.get('4. close')
         close_prices.append(int(float(close_price)))
-    return time_series, open_prices, high_prices, low_prices, close_prices
+
+    return filtered_time_series, open_prices, high_prices, low_prices, close_prices
 
 time_series, open_prices, high_prices, low_prices, close_prices = get_stock_data(stock_data)
 dates = time_series.keys()
+print(stock_data)
 
 def get_chart_type(chart_type):
     if chart_type == 1:
         bar_chart = pygal.Bar()
-        #THIS NEEDS TO BE UPDATED TO ACCOMODATE THE RETURN FROM TIME SERIES AND DATE RANGE
-        bar_chart.title = 'TEST'
-        bar_chart.x_labels = map(str, range(2002, 2013))
+        if inputs["time_series_option"] == 1:
+            bar_chart.title = f'Intraday Stock Data for {inputs["symbol"]} from {inputs["start_date"]} to {inputs["end_date"]}'
+        elif inputs["time_series_option"] == 2:
+            bar_chart.title = f'Daily Stock Data for {inputs["symbol"]} from {inputs["start_date"]} to {inputs["end_date"]}'
+        elif inputs["time_series_option"] == 3:
+            bar_chart.title = f'Weekly Stock Data for {inputs["symbol"]} from {inputs["start_date"]} to {inputs["end_date"]}'
+        elif inputs["time_series_option"] == 4:
+            bar_chart.title = f'Monthly Stock Data for {inputs["symbol"]} from {inputs["start_date"]} to {inputs["end_date"]}'
+        bar_chart.x_labels = dates
+        bar_chart.x_label_rotation = 90 # rotate labels so they fit better
         bar_chart.add('Open', open_prices)
         bar_chart.add('High', high_prices)
         bar_chart.add('Low', low_prices)
@@ -228,9 +253,16 @@ def get_chart_type(chart_type):
         return bar_chart
     else:
         line_chart = pygal.Line()
-        #THIS NEEDS TO BE UPDATED TO ACCOMODATE THE RETURN FROM TIME SERIES AND DATE RANGE
-        line_chart.title = 'TEST'
-        line_chart.x_labels = map(str, range(2002, 2013))
+        if inputs["time_series_option"] == 1:
+            line_chart.title = f'Intraday Stock Data for {inputs["symbol"]} from {inputs["start_date"]} to {inputs["end_date"]}'
+        elif inputs["time_series_option"] == 2:
+            line_chart.title = f'Daily Stock Data for {inputs["symbol"]} from {inputs["start_date"]} to {inputs["end_date"]}'
+        elif inputs["time_series_option"] == 3:
+            line_chart.title = f'Weekly Stock Data for {inputs["symbol"]} from {inputs["start_date"]} to {inputs["end_date"]}'
+        elif inputs["time_series_option"] == 4:
+            line_chart.title = f'Monthly Stock Data for {inputs["symbol"]} from {inputs["start_date"]} to {inputs["end_date"]}'
+        line_chart.x_labels = dates
+        line_chart.x_label_rotation = 90 # rotate labels so they fit better
         line_chart.add('Open', open_prices)
         line_chart.add('High', high_prices)
         line_chart.add('Low', low_prices)
@@ -239,6 +271,3 @@ def get_chart_type(chart_type):
 
 chart = get_chart_type(inputs['chart_type'])
 chart.render_to_file('chart.svg')
-#get time series choice from user
-
-#get start and end date for chart render
