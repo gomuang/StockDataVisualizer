@@ -210,9 +210,10 @@ def get_stock_data(data):
         low_prices.append(int(float(low_price)))
         close_price = values.get('4. close')
         close_prices.append(int(float(close_price)))
-    return open_prices, high_prices, low_prices, close_prices
+    return time_series, open_prices, high_prices, low_prices, close_prices
 
-open_prices, high_prices, low_prices, close_prices = get_stock_data(stock_data)
+time_series, open_prices, high_prices, low_prices, close_prices = get_stock_data(stock_data)
+dates = time_series.keys()
 
 def get_chart_type(chart_type):
     if chart_type == 1:
